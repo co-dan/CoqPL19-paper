@@ -1,0 +1,1 @@
+Requires coq-switch and metacoq to work: opam install coq-switch coq-metacoq.

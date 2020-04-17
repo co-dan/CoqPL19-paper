@@ -1,13 +1,17 @@
 Require Import Coq.Lists.List.
-Require Import ExtLib.Structures.Monads.
-Require Import ExtLib.Data.Monads.OptionMonad.
-
+Require Import MetaCoq.Template.monad_utils.
 Require Import NExpr.
 
 Import MonadNotation.
 Open Scope monad_scope.
 
 Definition evalContext:Type := list nat.
+
+Definition liftM2 {A B C} (f : A -> B -> C) a b :=
+  match a, b with
+  | Some x, Some y => Some (f x y)
+  | _,_ => None
+  end.
 
 Fixpoint evalNexp (Γ:evalContext) (e:NExpr): option nat :=
   match e with

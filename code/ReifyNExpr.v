@@ -1,5 +1,5 @@
 Require Import Coq.Strings.String.
-Require Import Template.All.
+Require Import MetaCoq.Template.All.
 Require Import Switch.Switch.
 Require Import Coq.Lists.List.
 
@@ -63,29 +63,29 @@ Fixpoint build_param_list (l:varlist) : TemplateMonad term :=
 Definition build_forall (p:varlist) conc :=
   fold_right (fun n ps => tProd (nNamed n) nt ps) conc p.
 
-Polymorphic Definition reifyNExp@{t u} {A:Type@{t}}
+Polymorphic Definition reifyNExp {A:Type}
             (res_name: string)
             (lemma_name: string)
             (nexpr:A):
-  TemplateMonad@{t u} unit :=
+  TemplateMonad unit :=
   e <- tmEval cbv nexpr ;;
-    ast <- tmQuote e ;;
-    cast <- compileNExpr [] ast ;;
-    let '(params, c) := cast in
-    c' <- tmEval cbv c ;; (* extra cbv to fold nat constructors *)
-       (* definition with resuting NExpr *)
-       def <- tmDefinition res_name c' ;;
-       (* lemma *)
-       a_params <- build_param_list params ;;
-       let param_idx := map tRel (seq 0 (length params)) in
-       let a_exp := tApp ast param_idx in
-       a_c <- tmQuote c' ;;
-           let lemma_concl := tApp (tConst "NExpr_term_equiv" []) [a_params; a_c; a_exp] in
-           let lemma_ast := build_forall params lemma_concl in
-           (tmBind (tmUnquoteTyped Prop lemma_ast)
-                   (fun lemma_body => tmLemma lemma_name lemma_body
-                                           ;;
-                                           tmReturn tt)).
+  ast <- tmQuote e ;;
+  cast <- compileNExpr [] ast ;;
+  let '(params, c) := cast in
+  c' <- tmEval cbv c ;; (* extra cbv to fold nat constructors *)
+  (* definition with resuting NExpr *)
+  def <- tmDefinition res_name c' ;;
+  (* lemma *)
+  a_params <- build_param_list params ;;
+  let param_idx := map tRel (seq 0 (length params)) in
+  let a_exp := tApp ast param_idx in
+  a_c <- tmQuote c' ;;
+  let lemma_concl := tApp (tConst "NExpr_term_equiv" []) [a_params; a_c; a_exp] in
+  let lemma_ast := build_forall params lemma_concl in
+  (tmBind (tmUnquoteTyped Prop lemma_ast)
+          (fun lemma_body => tmLemma lemma_name lemma_body
+                             ;;
+                             tmReturn tt)).
 
 (* -- Proof automation  -- *)
 
